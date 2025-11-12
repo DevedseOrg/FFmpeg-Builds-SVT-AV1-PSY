@@ -66,3 +66,60 @@ All of those can be optionally combined with any combination of addins:
 * `4.4`/`5.0`/`5.1`/`6.0`/`6.1`/`7.0`/`7.1` to build from the respective release branch instead of master.
 * `debug` to not strip debug symbols from the binaries. This increases the output size by about 250MB.
 * `lto` build all dependencies and ffmpeg with -flto=auto (HIGHLY EXPERIMENTAL, broken for Windows, sometimes works for Linux)
+
+## Intel Arc GPU Support (Battlemage and newer)
+
+This build includes support for Intel Arc GPUs including the latest Battlemage architecture (e.g., Intel Arc Pro B50).
+
+### What's Included
+
+For Linux x86_64 builds:
+- **libva 2.9.1**: Latest stable VA-API implementation with Xe GPU support
+- **gmmlib 22.5.5**: Intel Graphics Memory Management Library
+- **intel-media-driver 25.4.3**: Latest Intel media driver with Battlemage support
+
+### Using Hardware Acceleration
+
+#### For shared builds (`*-shared` variants):
+
+The VAAPI driver (`iHD_drv_video.so`) is included in the `lib/dri/` directory of the build package. To use it:
+
+```bash
+# Option 1: Set LIBVA_DRIVERS_PATH to the packaged driver location
+export LIBVA_DRIVERS_PATH=/path/to/ffmpeg/lib/dri
+ffmpeg -init_hw_device qsv=hw:/dev/dri/renderD128 -hwaccel qsv ...
+
+# Option 2: Install the driver system-wide
+sudo cp lib/dri/iHD_drv_video.so /usr/lib/x86_64-linux-gnu/dri/
+ffmpeg -init_hw_device qsv=hw:/dev/dri/renderD128 -hwaccel qsv ...
+```
+
+#### For static builds:
+
+Static builds do not include the VAAPI driver. You must install a compatible driver on your system:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install intel-media-va-driver-non-free
+
+# Or build from source using the versions in scripts.d/50-vaapi/
+```
+
+#### Testing Your Setup
+
+Verify VAAPI is working:
+```bash
+export LIBVA_DRIVERS_PATH=/path/to/ffmpeg/lib/dri  # if using shared build
+vainfo --display drm --device /dev/dri/renderD128
+```
+
+Example AV1 encoding with QSV:
+```bash
+ffmpeg -i input.mkv \
+  -init_hw_device qsv=hw:/dev/dri/renderD128 \
+  -c:v av1_qsv \
+  -preset veryslow \
+  -global_quality 20 \
+  -an \
+  output.mkv
+```
