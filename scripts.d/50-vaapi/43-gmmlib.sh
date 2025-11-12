@@ -3,10 +3,6 @@
 SCRIPT_REPO="https://github.com/intel/gmmlib.git"
 SCRIPT_COMMIT="d6571241f1d9663c1a4104962cf4e0816f0e6387"  # intel-gmmlib-22.8.2
 
-ffbuild_depends() {
-    echo libva
-}
-
 ffbuild_enabled() {
     [[ $TARGET != linux64 ]] && return -1
     return 0

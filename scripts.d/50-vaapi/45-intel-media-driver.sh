@@ -3,11 +3,6 @@
 SCRIPT_REPO="https://github.com/intel/media-driver.git"
 SCRIPT_COMMIT="192fe0f5478bdfacfc8df6fa768e5ac699b73924"  # intel-media-25.3.4
 
-ffbuild_depends() {
-    echo gmmlib
-    echo libva
-}
-
 ffbuild_enabled() {
     [[ $TARGET != linux64 ]] && return -1
     return 0
