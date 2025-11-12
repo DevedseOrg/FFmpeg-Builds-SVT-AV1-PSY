@@ -6,6 +6,7 @@ SCRIPT_COMMIT="714ca9c76a74b3119e021940c24928adf3b96e40"  # intel-media-25.4.3
 ffbuild_depends() {
     echo gmmlib
     echo libva
+    echo libdrm
 }
 
 ffbuild_enabled() {

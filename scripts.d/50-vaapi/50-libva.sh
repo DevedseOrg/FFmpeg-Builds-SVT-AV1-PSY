@@ -6,6 +6,7 @@ SCRIPT_COMMIT="8bbc3130874717c3bbb99efe31e2f73e1b04a208"  # 2.9.1
 ffbuild_depends() {
     echo base
     echo x11
+    echo libdrm
 }
 
 ffbuild_enabled() {
