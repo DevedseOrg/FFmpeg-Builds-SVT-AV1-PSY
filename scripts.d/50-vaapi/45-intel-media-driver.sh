@@ -1,10 +1,11 @@
 #!/bin/bash
 
 SCRIPT_REPO="https://github.com/intel/media-driver.git"
-SCRIPT_COMMIT="714ca9c76a74b3119e021940c24928adf3b96e40"  # intel-media-25.4.3
+SCRIPT_COMMIT="192fe0f5478bdfacfc8df6fa768e5ac699b73924"  # intel-media-25.3.4
 
 ffbuild_depends() {
-    echo base
+    echo gmmlib
+    echo libva
 }
 
 ffbuild_enabled() {
