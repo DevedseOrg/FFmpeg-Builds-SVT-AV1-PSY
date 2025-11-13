@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# libva build script
+#
+# Ordering assumptions:
+#   gmmlib (43-gmmlib.sh) must be built before intel-media-driver (55-intel-media-driver.sh),
+#   and libva must be present before the driver config runs (pkg-config usage).
+# This script provides the VA-API headers and libraries consumed by the media driver.
+#
+# Runtime driver discovery:
+#   We deliberately set -Ddriverdir to the prefix-local dri directory so packaged
+#   builds can find the iHD driver without requiring LIBVA_DRIVERS_PATH.
+#   If users relocate FFmpeg artifacts, they may still set LIBVA_DRIVERS_PATH manually.
+#
+# Version chosen for Battlemage support parity with Jellyfin builds.
 SCRIPT_REPO="https://github.com/intel/libva.git"
 SCRIPT_COMMIT="217da1c28336d6a7e9c0c4cb8f1c303968a675f1"  # 2.22.0
 
@@ -40,7 +53,8 @@ ffbuild_dockerbuild() {
             --cross-file=/cross.meson
             --default-library=shared
             --sysconfdir="/etc"
-            -Ddriverdir="/usr/lib/x86_64-linux-gnu/dri"
+            # Install driver path into the build prefix for self-contained packages
+            -Ddriverdir="${FFBUILD_PREFIX}/lib/dri"
             -Ddisable_drm=false
             -Dwith_x11=yes
             -Dwith_glx=no
@@ -57,8 +71,10 @@ ffbuild_dockerbuild() {
         return -1
     fi
 
+    # Reset flags to the raw toolchain defaults to avoid leakage from prior stages
     export CFLAGS="$RAW_CFLAGS"
-    export LDFLAFS="$RAW_LDFLAGS"
+    export CXXFLAGS="$RAW_CXXFLAGS"
+    export LDFLAGS="$RAW_LDFLAGS"
 
     meson "${myconf[@]}" ..
     ninja -j"$(nproc)"
@@ -71,6 +87,8 @@ ffbuild_dockerbuild() {
         rm "$FFBUILD_DESTPREFIX"/lib/libva{,-drm,-x11}.so*
 
         echo "Libs: -ldl" >> "$FFBUILD_DESTPREFIX"/lib/pkgconfig/libva.pc
+        # Ensure the expected driver directory exists for later media-driver install
+        mkdir -p "$FFBUILD_DESTPREFIX"/lib/dri
     fi
 }
 

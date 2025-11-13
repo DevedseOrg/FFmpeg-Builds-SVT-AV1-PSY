@@ -11,6 +11,16 @@ ffbuild_enabled() {
 ffbuild_dockerbuild() {
     mkdir build && cd build
 
+    # Add -Wno-error=array-bounds to work around GCC 15+ false positives
+    # intel-media-driver 25.3.4 has code that triggers array-bounds warnings
+    # in GCC 15.2.0 (specifically in media_ddi_encode_hevc.cpp:55)
+    # Jellyfin uses GCC 13 so doesn't hit this issue
+    export CFLAGS="${CFLAGS} -Wno-error=array-bounds"
+    export CXXFLAGS="${CXXFLAGS} -Wno-error=array-bounds"
+
+    # Ensure target driver directory exists (matches libva -Ddriverdir)
+    mkdir -p "$FFBUILD_PREFIX/lib/dri"
+
     cmake \
         -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE="$FFBUILD_CMAKE_TOOLCHAIN" \
