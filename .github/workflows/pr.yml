@@ -30,6 +30,13 @@ jobs:
           - target: linuxarm64
             variant: gpl
             quickbuild: ''
+          # Battlemage validation builds (linux64 only)
+          - target: linux64
+            variant: gpl-battlemage
+            quickbuild: ''
+          - target: linux64
+            variant: gpl-battlemage 8.0
+            quickbuild: ''
     steps:
       - name: Free Disk-Space
         run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android && df -h
