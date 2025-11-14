@@ -236,6 +236,12 @@ jobs:
           path: .cache/downloads
           key: download-cache-${{ steps.dl_cache.outputs.dltagname }}
           fail-on-cache-miss: true
+      - name: Aggressive Pre-Build Cleanup
+        run: |
+          # Additional cleanup before heavy build to maximize available space
+          docker system prune -a -f --volumes
+          sudo rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
+          df -h
       - name: Build target base image
         uses: docker/build-push-action@v6
         with:

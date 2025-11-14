@@ -35,5 +35,22 @@ fi
 rm -rf "$FFBUILD_DESTPREFIX"/bin
 
 if [[ -n "$STAGENAME" ]]; then
+    # Aggressive cleanup to prevent disk exhaustion on GitHub Actions runners
+    # Remove common build artifact patterns that consume GB of space
+    cd "/$STAGENAME" 2>/dev/null || true
+    
+    # Clean CMake/Ninja/Make build directories (typically named 'build', 'mybuild', etc.)
+    rm -rf build mybuild native_build .build 2>/dev/null || true
+    
+    # Clean object files, archives, and intermediate build products
+    find . -type f \( -name '*.o' -o -name '*.lo' -o -name '*.a' -o -name '*.la' \) -delete 2>/dev/null || true
+    
+    # Clean .git directories from cloned sources (not needed after build)
+    find . -type d -name '.git' -exec rm -rf {} + 2>/dev/null || true
+    
+    # Clean pkg-config build-time files (only runtime .pc files in DESTDIR matter)
+    rm -rf .pc 2>/dev/null || true
+    
+    cd /
     rm -rf "/$STAGENAME"
 fi
