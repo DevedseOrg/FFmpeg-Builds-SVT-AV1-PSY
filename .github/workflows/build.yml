@@ -201,7 +201,7 @@ jobs:
             variant: gpl-battlemage 8.0
     steps:
       - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android && df -h
+        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet /usr/local/share/boost && df -h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install buildx
@@ -274,7 +274,7 @@ jobs:
             variant: gpl-battlemage 8.0
     steps:
       - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android && df -h
+        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet /usr/local/share/boost && df -h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Login to Docker

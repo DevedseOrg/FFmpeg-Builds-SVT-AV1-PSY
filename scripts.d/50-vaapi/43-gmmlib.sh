@@ -22,4 +22,8 @@ ffbuild_dockerbuild() {
 
     ninja -j$(nproc)
     DESTDIR="$FFBUILD_DESTDIR" ninja install
+
+    # Clean build artifacts
+    cd ..
+    rm -rf build
 }

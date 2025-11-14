@@ -34,4 +34,8 @@ ffbuild_dockerbuild() {
 
     ninja -j$(nproc)
     DESTDIR="$FFBUILD_DESTDIR" ninja install
+
+    # Aggressively clean build artifacts to reclaim disk space (driver build is ~2GB intermediate objects)
+    cd ..
+    rm -rf build
 }
