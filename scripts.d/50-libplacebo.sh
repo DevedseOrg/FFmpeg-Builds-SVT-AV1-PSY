@@ -58,10 +58,6 @@ ffbuild_dockerbuild() {
     DESTDIR="$FFBUILD_DESTDIR" ninja install
 
     echo "Libs.private: -lstdc++" >> "$FFBUILD_DESTPREFIX"/lib/pkgconfig/libplacebo.pc
-    
-    # Immediate cleanup to save disk space
-    cd ..
-    rm -rf build
 }
 
 ffbuild_configure() {

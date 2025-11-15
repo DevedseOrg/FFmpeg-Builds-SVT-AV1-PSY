@@ -28,10 +28,6 @@ ffbuild_dockerbuild() {
     meson "${myconf[@]}" ..
     ninja -j$(nproc)
     DESTDIR="$FFBUILD_DESTDIR" ninja install
-    
-    # Immediate cleanup to save disk space
-    cd ..
-    rm -rf build
 }
 
 ffbuild_configure() {

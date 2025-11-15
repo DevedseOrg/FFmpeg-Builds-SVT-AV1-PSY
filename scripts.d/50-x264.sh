@@ -31,9 +31,6 @@ ffbuild_dockerbuild() {
     ./configure "${myconf[@]}"
     make -j$(nproc)
     make install DESTDIR="$FFBUILD_DESTDIR"
-    
-    # Immediate cleanup to save disk space
-    make clean
 }
 
 ffbuild_configure() {

@@ -95,9 +95,6 @@ EOF
 
     make -j$(nproc) build_sw
     make install_sw DESTDIR="$FFBUILD_DESTDIR"
-    
-    # Immediate cleanup to save disk space
-    make clean
 }
 
 ffbuild_configure() {

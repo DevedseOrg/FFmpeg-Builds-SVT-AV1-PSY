@@ -57,9 +57,6 @@ ffbuild_dockerbuild() {
 
     # Work around strip breaking LTO symbol index
     "$RANLIB" "$FFBUILD_DESTPREFIX"/lib/libvpx.a
-    
-    # Immediate cleanup to save disk space
-    make clean
 }
 
 ffbuild_configure() {

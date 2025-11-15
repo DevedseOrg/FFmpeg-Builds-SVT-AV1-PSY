@@ -241,6 +241,9 @@ jobs:
           # Additional cleanup before heavy build to maximize available space
           docker system prune -a -f --volumes
           sudo rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
+          # Clear apt cache
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
           df -h
       - name: Build target base image
         uses: docker/build-push-action@v6
@@ -250,8 +253,15 @@ jobs:
           push: true
           provenance: false
           tags: ${{ steps.imagename.outputs.name }}:latest
-          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
-          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
+          # Disable cache for battlemage builds to save space
+          cache-to: ${{ !contains(matrix.variant, 'battlemage') && 'type=registry,mode=max,ref=' || '' }}${{ !contains(matrix.variant, 'battlemage') && steps.imagename.outputs.name || '' }}${{ !contains(matrix.variant, 'battlemage') && ':cache' || '' }}
+          cache-from: ${{ !contains(matrix.variant, 'battlemage') && 'type=registry,ref=' || '' }}${{ !contains(matrix.variant, 'battlemage') && steps.imagename.outputs.name || '' }}${{ !contains(matrix.variant, 'battlemage') && ':cache' || '' }}
+      - name: Immediate Post-Build Cleanup
+        if: contains(matrix.variant, 'battlemage')
+        run: |
+          # Aggressively prune after battlemage image build
+          docker system prune -a -f --volumes
+          df -h
       - name: Cleanup
         continue-on-error: true
         uses: BtbN/delete-untagged-ghcr-action@main
@@ -293,6 +303,12 @@ jobs:
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
           ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
+      - name: Post-Build Cleanup
+        if: contains(matrix.variant, 'battlemage')
+        run: |
+          # Clean up Docker after battlemage build to free blob storage
+          docker system prune -a -f --volumes
+          df -h
       - name: Replace spaces in string
         id: strs
         run: |

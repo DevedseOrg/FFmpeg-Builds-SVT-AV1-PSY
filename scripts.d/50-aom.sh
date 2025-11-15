@@ -33,10 +33,6 @@ ffbuild_dockerbuild() {
     make install DESTDIR="$FFBUILD_DESTDIR"
 
     echo "Requires.private: libvmaf" >> "$FFBUILD_DESTPREFIX"/lib/pkgconfig/aom.pc
-    
-    # Immediate cleanup to save disk space
-    cd ..
-    rm -rf cmbuild
 }
 
 ffbuild_configure() {

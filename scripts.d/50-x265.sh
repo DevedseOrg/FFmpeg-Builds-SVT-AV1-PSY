@@ -66,10 +66,6 @@ EOF
     make install DESTDIR="$FFBUILD_DESTDIR"
 
     echo "Libs.private: -lstdc++" >> "$FFBUILD_DESTPREFIX"/lib/pkgconfig/x265.pc
-    
-    # Immediate cleanup to save disk space
-    cd "$FFBUILD_DLDIR/$SELF"
-    rm -rf 8bit 10bit 12bit source
 }
 
 ffbuild_configure() {
