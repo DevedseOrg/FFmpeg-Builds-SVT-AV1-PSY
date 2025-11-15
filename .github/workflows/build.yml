@@ -17,8 +17,8 @@ on:
         type: boolean
         default: false
         required: false
-  schedule:
-    - cron: '0 17 * * *'
+  # schedule:
+  #   - cron: '0 17 * * *'
 
 env:
   DOCKER_BUILDKIT: 1
@@ -193,9 +193,15 @@ jobs:
       matrix:
         target: [win64,winarm64,linux64,linuxarm64]
         variant: [gpl,gpl 7.1,gpl 8.0,gpl-shared,gpl-shared 7.1,gpl-shared 8.0]
+        include:
+          # Battlemage bundled variants (only meaningful for linux64)
+          - target: linux64
+            variant: gpl-battlemage
+          - target: linux64
+            variant: gpl-battlemage 8.0
     steps:
       - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android && df -h
+        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet /usr/local/share/boost && df -h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install buildx
@@ -230,6 +236,15 @@ jobs:
           path: .cache/downloads
           key: download-cache-${{ steps.dl_cache.outputs.dltagname }}
           fail-on-cache-miss: true
+      - name: Aggressive Pre-Build Cleanup
+        run: |
+          # Additional cleanup before heavy build to maximize available space
+          docker system prune -a -f --volumes
+          sudo rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
+          # Clear apt cache
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          df -h
       - name: Build target base image
         uses: docker/build-push-action@v6
         with:
@@ -238,8 +253,15 @@ jobs:
           push: true
           provenance: false
           tags: ${{ steps.imagename.outputs.name }}:latest
-          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
-          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
+          # Disable cache for battlemage builds to save space
+          cache-to: ${{ !contains(matrix.variant, 'battlemage') && 'type=registry,mode=max,ref=' || '' }}${{ !contains(matrix.variant, 'battlemage') && steps.imagename.outputs.name || '' }}${{ !contains(matrix.variant, 'battlemage') && ':cache' || '' }}
+          cache-from: ${{ !contains(matrix.variant, 'battlemage') && 'type=registry,ref=' || '' }}${{ !contains(matrix.variant, 'battlemage') && steps.imagename.outputs.name || '' }}${{ !contains(matrix.variant, 'battlemage') && ':cache' || '' }}
+      - name: Immediate Post-Build Cleanup
+        if: contains(matrix.variant, 'battlemage')
+        run: |
+          # Aggressively prune after battlemage image build
+          docker system prune -a -f --volumes
+          df -h
       - name: Cleanup
         continue-on-error: true
         uses: BtbN/delete-untagged-ghcr-action@main
@@ -260,9 +282,15 @@ jobs:
       matrix:
         target: [win64,winarm64,linux64,linuxarm64]
         variant: [gpl,gpl 7.1,gpl 8.0,gpl-shared,gpl-shared 7.1,gpl-shared 8.0]
+        include:
+          # Battlemage bundled variants (linux64 only)
+          - target: linux64
+            variant: gpl-battlemage
+          - target: linux64
+            variant: gpl-battlemage 8.0
     steps:
       - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android && df -h
+        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet /usr/local/share/boost && df -h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Login to Docker
@@ -275,6 +303,12 @@ jobs:
         run: |
           T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
           ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
+      - name: Post-Build Cleanup
+        if: contains(matrix.variant, 'battlemage')
+        run: |
+          # Clean up Docker after battlemage build to free blob storage
+          docker system prune -a -f --volumes
+          df -h
       - name: Replace spaces in string
         id: strs
         run: |

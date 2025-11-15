@@ -18,6 +18,12 @@ package_variant() {
         -e '/Libs.private:/d' \
         "$OUT"/lib/pkgconfig/*.pc
 
+    # Include VAAPI drivers if present
+    if [[ -d "$IN"/lib/dri ]]; then
+        mkdir -p "$OUT"/lib/dri
+        cp -a "$IN"/lib/dri/*.so* "$OUT"/lib/dri/ 2>/dev/null || true
+    fi
+
     mkdir -p "$OUT"/include
     cp -r "$IN"/include/* "$OUT"/include
 

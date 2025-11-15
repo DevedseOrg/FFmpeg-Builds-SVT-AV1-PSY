@@ -35,5 +35,37 @@ fi
 rm -rf "$FFBUILD_DESTPREFIX"/bin
 
 if [[ -n "$STAGENAME" ]]; then
+    # Aggressive cleanup to prevent disk exhaustion on GitHub Actions runners
+    # Remove common build artifact patterns that consume GB of space
+    cd "/$STAGENAME" 2>/dev/null || true
+    
+    # Clean CMake/Ninja/Make build directories (typically named 'build', 'mybuild', etc.)
+    rm -rf build mybuild native_build .build cmbuild 8bit 10bit 12bit 2>/dev/null || true
+    
+    # Clean object files, archives, and intermediate build products
+    find . -type f \( -name '*.o' -o -name '*.lo' -o -name '*.la' \) -delete 2>/dev/null || true
+    
+    # Clean static libraries AFTER install (they're copied to DESTDIR already)
+    find . -type f -name '*.a' ! -path "*/DESTDIR/*" -delete 2>/dev/null || true
+    
+    # Clean .git directories from cloned sources (not needed after build)
+    find . -type d -name '.git' -exec rm -rf {} + 2>/dev/null || true
+    
+    # Clean C++ template instantiation caches and dependency files
+    find . -type f \( -name '*.d' -o -name '*.gcda' -o -name '*.gcno' -o -name '*.dwo' \) -delete 2>/dev/null || true
+    
+    # Clean ninja/cmake metadata
+    rm -rf .ninja_deps .ninja_log CMakeFiles CMakeCache.txt cmake_install.cmake config.log config.status 2>/dev/null || true
+    
+    # Clean cargo/rust build artifacts (can be massive)
+    rm -rf target .cargo 2>/dev/null || true
+    
+    # Clean autotools cruft
+    find . -type f -name 'libtool' -delete 2>/dev/null || true
+    
+    cd /
     rm -rf "/$STAGENAME"
+    
+    # Force trim of any orphaned inodes
+    sync || true
 fi
