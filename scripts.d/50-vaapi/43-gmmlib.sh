@@ -23,5 +23,7 @@ ffbuild_dockerbuild() {
     ninja -j$(nproc)
     DESTDIR="$FFBUILD_DESTDIR" ninja install
     
-    # Cleanup handled by run_stage.sh globally
+    # Immediate cleanup to save disk space
+    cd ..
+    rm -rf build
 }

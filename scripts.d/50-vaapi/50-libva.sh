@@ -90,6 +90,10 @@ ffbuild_dockerbuild() {
         # Ensure the expected driver directory exists for later media-driver install
         mkdir -p "$FFBUILD_DESTPREFIX"/lib/dri
     fi
+    
+    # Immediate cleanup to save disk space
+    cd ..
+    rm -rf build
 }
 
 ffbuild_configure() {

@@ -51,6 +51,15 @@ if [[ -n "$STAGENAME" ]]; then
     # Clean pkg-config build-time files (only runtime .pc files in DESTDIR matter)
     rm -rf .pc 2>/dev/null || true
     
+    # Clean C++ template instantiation caches and dependency files
+    find . -type f \( -name '*.d' -o -name '*.gcda' -o -name '*.gcno' \) -delete 2>/dev/null || true
+    
+    # Clean ninja/cmake metadata
+    rm -rf .ninja_deps .ninja_log CMakeFiles CMakeCache.txt cmake_install.cmake 2>/dev/null || true
+    
     cd /
     rm -rf "/$STAGENAME"
+    
+    # Force trim of any orphaned inodes
+    sync || true
 fi

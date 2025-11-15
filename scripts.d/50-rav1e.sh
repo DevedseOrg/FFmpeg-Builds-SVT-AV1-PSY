@@ -40,6 +40,9 @@ ffbuild_dockerbuild() {
     cargo cinstall -v "${myconf[@]}"
 
     chmod 644 "${FFBUILD_DESTPREFIX}"/lib/*rav1e*
+    
+    # Immediate cleanup to save disk space (cargo build artifacts)
+    cargo clean
 }
 
 ffbuild_configure() {

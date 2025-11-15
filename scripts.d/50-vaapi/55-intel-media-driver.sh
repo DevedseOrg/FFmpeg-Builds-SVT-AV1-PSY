@@ -32,8 +32,11 @@ ffbuild_dockerbuild() {
         -DBUILD_SHARED_LIBS=ON \
         ..
 
-    ninja -j$(nproc)
+    # Reduce parallel jobs for this massive build to limit peak disk usage
+    ninja -j2
     DESTDIR="$FFBUILD_DESTDIR" ninja install
     
-    # Cleanup handled by run_stage.sh globally
+    # Immediate aggressive cleanup before run_stage.sh to free space ASAP
+    cd ..
+    rm -rf build
 }
